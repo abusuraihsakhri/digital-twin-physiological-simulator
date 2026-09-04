@@ -5,7 +5,7 @@ Standard: Cardiovascular Systems Biology Modeling Standards
 """
 import math
 from typing import Dict, Any, List, Optional
-from .models import FrontierPayload, AgentTelemetryAlert, ExecutionStatus
+from .models import ExecutionStatus
 
 
 class FrontierDomainEngine:
@@ -13,8 +13,14 @@ class FrontierDomainEngine:
     PRIMARY_BOUND = 25.0
     SECONDARY_BOUND = 10.0
 
+    @staticmethod
+    def _validate_finite(value: float, name: str = "value") -> None:
+        if math.isnan(value) or math.isinf(value):
+            raise ValueError(f"{name} must be a finite number (not NaN or Inf)")
+
     @classmethod
     def evaluate_primary_parameter(cls, value: float) -> Optional[Dict[str, Any]]:
+        cls._validate_finite(value, "primary_metric")
         if value > cls.PRIMARY_BOUND:
             return {
                 "summary": "Primary Domain Boundary Deviation",
@@ -25,6 +31,7 @@ class FrontierDomainEngine:
 
     @classmethod
     def evaluate_secondary_kinetics(cls, value: float, is_critical: bool) -> Optional[Dict[str, Any]]:
+        cls._validate_finite(value, "secondary_metric")
         if value > cls.SECONDARY_BOUND or is_critical:
             return {
                 "summary": "Critical Domain Condition Triggered",
