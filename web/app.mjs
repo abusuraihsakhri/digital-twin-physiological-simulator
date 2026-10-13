@@ -26,6 +26,7 @@ function appendLine(parent, tag, className, value) {
 
 function render(result) {
   results.hidden = false;
+  document.querySelector("#before-run").hidden = true;
   summary.replaceChildren();
   alerts.replaceChildren();
   const classification = result.overall_urgency.replaceAll("_", " ");
