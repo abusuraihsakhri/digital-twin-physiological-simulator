@@ -1,187 +1,70 @@
 # Digital Twin Physiological Simulator
 
-> **Domain:** Clinical Decision Support & Biomedical Computing  
-> **Reference Guidelines & Standards:** `Standard Clinical Formulations & ISO/IEC Quality Frameworks`
+A research-oriented **rule-based parameter evaluation** repository with a standalone browser explorer, two Python command-line evaluators, and a FastAPI audit endpoint.
 
-<div align="center">
+**Scope:** The current code compares numeric inputs against fixed thresholds and checks status keywords. Despite historical class names, it does **not** implement an eight-compartment cardiovascular/renal ODE, ventricular elastance solver, patient-specific digital twin, or medically validated decision support. Thresholds are synthetic demonstrations, not physiological reference ranges. **Do not use for clinical decisions or provide patient information.**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB.svg?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688.svg?logo=fastapi&logoColor=white)
-![Audit Trail](https://img.shields.io/badge/Audit-HMAC--SHA256_Tamper--Evident-brightgreen.svg)
-![Zero-PHI Guard](https://img.shields.io/badge/Guard-Zero--PHI_Outbound-blue.svg)
-![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)
+## Browser application
 
-</div>
+The browser app is in [`web/`](web/). It reproduces the `agents/workers.py` rules locally: primary value > 25, secondary value > 12, a synthetic critical flag, and anomaly tokens in a descriptor. It displays the resulting classification, explains triggered checks, and exports a JSON report.
 
----
+The browser application runs without Python, Pyodide, a backend, external packages, or API calls. It keeps results in the current tab and does not persist input data or transmit it to the server. JSON export saves a local file; it is **not an HMAC-signed audit record**.
 
-## 📖 What It Does
-
-**Digital Twin Physiological Simulator** is an analytical and computational platform implementing cardiovascular & renal hemodynamic simulation with multi-agent consensus evaluation.
-
----
-
-## ⚙️ Key Capabilities & Algorithmic Modules
-
-- **Deterministic Calculation Engine**: Strict compliance with standard reference formulations and thresholds.
-- **Risk & Urgency Classification**: Multi-tier categorization with automated clinical/operational action recommendations.
-- **Validation & Guardrails**: Rigorous input bounds checking and anomaly detection.
-- **Multi-Agent Consensus**: Three specialized workers (InvariantQC, SafetyEscalation, ProtocolConformance) evaluate each task.
-- **Zero-PHI Outbound Interceptor**: Active regex inspection blocking SSNs, MRNs, phone numbers, and patient identifiers.
-- **Tamper-Evident HMAC-SHA256 Audit Trail**: Chained, cryptographically signed logs for every evaluation.
-
----
-
-## 💻 CLI Quickstart & Usage
-
-### Installation
-```bash
-pip install -e .
-```
-
-### 1. Single Task Evaluation
-```bash
-python cli.py audit --task-id TASK-001 --target KEY-01 --primary 28.5 --secondary 14.2
-```
-
-### 2. Batch Processing
-```bash
-python cli.py batch -i sample.csv -o results.csv
-```
-
-### 3. Supervisory Chat
-```bash
-python cli.py chat "What is the system status?"
-```
-
-### 4. Verify Audit Trail
-```bash
-python cli.py verify-audit
-```
-
-### 5. Launch API Server
-```bash
-python cli.py serve --host 127.0.0.1 --port 8000
-```
-
-### Parameter Reference
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `--task-id` | Unique task identifier | TASK-2026-001 |
-| `--target` | Target entity identifier | KEY-TARGET-01 |
-| `--primary` | Primary measurement value | 28.5 |
-| `--secondary` | Secondary kinetic/confidence score | 14.2 |
-| `--critical` | Flag for emergency escalation | False |
-| `--status` | Status/phenotype descriptor | DISCORDANT |
-
-### Input Data Schema
-
-| Field | Description | Requirement |
-|:------|:------------|:------------|
-| `task_id` | Unique task identifier | Required |
-| `target_identifier` | Target entity identifier | Required |
-| `primary_metric` | Primary measurement value | Required |
-| `secondary_metric` | Secondary kinetic/confidence score | Optional (default: 0.0) |
-| `is_critical_flag` | Emergency escalation trigger | Optional (default: false) |
-| `status_descriptor` | Status/phenotype descriptor | Optional (default: NOMINAL) |
-
----
-
-## 🛡️ Security & Enterprise Architecture
-
-* **Zero-PHI Outbound Interceptor:** Active regex inspection blocking SSNs, MRNs, phone numbers, and patient identifiers.
-* **Tamper-Evident HMAC-SHA256 Audit Trail:** Chained, cryptographically signed logs for every evaluation and state transition.
-* **Secure Key Management:** Audit signing key sourced from `AUDIT_SECRET_KEY` environment variable; ephemeral key generated with warning if unset.
-* **Input Validation:** NaN and Inf values are rejected at model validation layer.
-* **FastAPI REST API:** Exposes OpenAPI 3.1 REST endpoints.
-
-### Environment Variables
-| Variable | Description | Required |
-|:---------|:------------|:---------|
-| `AUDIT_SECRET_KEY` | Secret key for HMAC-SHA256 audit signing | No (warning if unset) |
-| `MODEL_PROVIDER` | LLM provider selection | No (default: mock) |
-
----
-
-## 🧪 Testing & Verification
-
-Run the automated test suite:
+For local development, serve the repository directory using:
 
 ```bash
-pytest -v
+python -m http.server 8001
 ```
 
-Run with coverage:
+Then open `http://localhost:8001/`. A simple `file://` page may block ES-module imports; use an HTTP static server or GitHub Pages. Recent Chromium, Firefox, and Safari browsers support the required JavaScript modules.
+
+## Python usage
+
+Requires Python 3.9+ (CI verifies 3.10–3.12).
 
 ```bash
-pytest -v --cov=agents --cov=physiotwin_simulator
+python -m pip install -e '.[api]'
+digital-twin-physiological-simulator audit --task-id DEMO-01 --target SYNTHETIC-01 --primary 28.5 --secondary 14.2
+digital-twin-physiological-simulator batch -i sample.csv -o results.csv
+digital-twin-physiological-simulator verify-audit
+digital-twin-physiological-simulator serve --host 127.0.0.1 --port 8000
 ```
 
-Execute high-throughput batch simulation benchmarks:
+The installed command calls the `agents` evaluator, which uses primary > 25 and secondary > 12. The separate `python -m physiotwin_simulator.cli` command runs the legacy `physiotwin_simulator` evaluator, which uses primary > 25 and secondary > 10. These are different demonstration rule sets, **not** alternate ODE solvers.
+
+Batch CSV columns are `task_id`, `target_identifier`, `primary_metric`, `secondary_metric`, `status_descriptor`, and `is_critical_flag`. Boolean strings `true/false`, `yes/no`, and `1/0` are recognized; invalid values fail with an error.
+
+With the API installed, inspect `http://127.0.0.1:8000/docs`, `GET /health`, `GET /metrics`, `POST /api/audit`, `POST /api/chat`, and `GET /api/audit/logs`. The browser application deliberately does not call this backend. The chat endpoint is a **mock text responder**, not a connected LLM.
+
+`python simulator.py 1000` performs synthetic *task throughput* testing, not longitudinal physiological simulation.
+
+## Security and limitations
+
+The Python audit component uses an in-memory HMAC-SHA256 chain and verifies both chain linkage and message signatures. Set `AUDIT_SECRET_KEY` to a strong, confidential value to use a consistent signing key; otherwise an ephemeral key is generated. Audit entries are not persisted, and the chain alone cannot prove that records were not truncated or deleted. It must **not** be described as a durable compliance-grade record.
+
+The identifier guard uses regular expressions to detect some sensitive identifiers. It is **not** a complete de-identification system, privacy certification, or a guarantee of zero protected health information. The API has no authentication or deployment-grade access controls; run it only in a trusted local/test environment with synthetic data.
+
+Optional container execution:
 
 ```bash
-python simulator.py --tasks 1000 --concurrency 8
+export AUDIT_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_hex(32))')"
+docker compose up --build
 ```
 
----
+Compose binds port 8000 to localhost by default. Do not publish the service to the Internet without adding appropriate authentication, access controls, and deployment security.
 
-## 🐳 Container Deployment
+## Testing
 
 ```bash
-docker build -t digital-twin-physiological-simulator .
-docker run -p 8000:8000 -e AUDIT_SECRET_KEY=your-secret-key digital-twin-physiological-simulator
+python -m pip install -e '.[api,test]'
+python -m pytest -q
+node --check web/app.mjs
+node --test web/rules.test.mjs
+python -m pip check
 ```
 
-Or using Docker Compose:
+GitHub Actions runs package installation, Python tests, and browser-rule tests on Python 3.10–3.12. The browser uses JavaScript rather than WebAssembly Python because its current calculations are simple deterministic rules.
 
-```bash
-AUDIT_SECRET_KEY=your-secret-key docker-compose up -d
-```
+## Structure and license
 
----
-
-## 📁 Project Structure
-
-```
-digital-twin-physiological-simulator/
-├── agents/                      # Core agent modules
-│   ├── __init__.py
-│   ├── api.py                   # FastAPI REST endpoints
-│   ├── base.py                  # Security, PHI guard, audit trail
-│   ├── learning.py              # Bayesian calibration engine
-│   ├── llm_factory.py           # LLM client factory
-│   ├── metrics.py               # Prometheus metrics collector
-│   ├── models.py                # Pydantic data models
-│   ├── streamer.py              # WebSocket telemetry streamer
-│   ├── supervisor.py            # Multi-agent orchestrator
-│   └── workers.py               # Specialized worker agents
-├── physiotwin_simulator/        # PhysioTwin simulation engine
-│   ├── __init__.py
-│   ├── agents.py                # PhysioTwin coordinator & sub-agents
-│   ├── cli.py                   # PhysioTwin CLI
-│   ├── engine.py                # Core algorithmic engine
-│   ├── models.py                # Data models
-│   └── server.py                # FastAPI server factory
-├── tests/                       # Test suite
-│   ├── test_digital_twin_physiological_simulator.py
-│   ├── test_edge_cases.py
-│   ├── test_enrichment.py
-│   └── test_physiotwin_simulator.py
-├── web/
-│   └── index.html               # Operations console UI
-├── cli.py                       # Main CLI entry point
-├── simulator.py                 # High-throughput simulation runner
-├── enrichment.py                # Enrichment feature suite
-├── physiotwin_simulator_app.py  # PhysioTwin CLI entry point
-├── Dockerfile
-├── docker-compose.yml
-├── pyproject.toml
-└── README.md
-```
-
----
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) for details.
+`agents/` contains the primary Pydantic-based audit workers, audit-chain logic, and API. `physiotwin_simulator/` contains the separate legacy evaluator. `web/` contains the static interface and rule tests; `enrichment.py` contains experimental illustrative feature classes. See [MIT License](LICENSE).

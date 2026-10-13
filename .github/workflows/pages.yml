@@ -1,0 +1,44 @@
+name: Deploy browser explorer to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare static artifact
+        run: |
+          mkdir -p _site/web
+          cp index.html _site/index.html
+          cp web/index.html web/app.mjs web/rules.mjs _site/web/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Verify public site and static assets
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 8 --retry-delay 5 "${PAGE_URL}" | grep -q "PhysioTwin"
+          curl -fsSL --retry 8 --retry-delay 5 "${PAGE_URL}web/" | grep -q "Parameter Rule Explorer"
+          curl -fsSL --retry 8 --retry-delay 5 "${PAGE_URL}web/app.mjs" | grep -q "evaluateTask"
+          curl -fsSL --retry 8 --retry-delay 5 "${PAGE_URL}web/rules.mjs" | grep -q "LIMITS"
