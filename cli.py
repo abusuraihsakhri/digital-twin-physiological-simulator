@@ -9,6 +9,16 @@ from agents.models import SystemTaskPayload
 from agents.supervisor import SystemSupervisor
 from agents.base import AuditLogger
 
+def parse_csv_bool(value: str) -> bool:
+    """Parse a CSV boolean without treating the string 'False' as true."""
+    normalized = str(value or "").strip().lower()
+    if normalized in ("true", "1", "yes", "y"):
+        return True
+    if normalized in ("false", "0", "no", "n", ""):
+        return False
+    raise ValueError(f"Invalid boolean value: {value!r}")
+
+
 supervisor = SystemSupervisor(model_provider="mock")
 
 
@@ -94,15 +104,19 @@ def main(argv=None):
 
         out_fields = fieldnames + ["overall_urgency", "integrity_status", "total_alerts", "audit_hash"]
         out_rows = []
-        for r in rows:
-            payload = SystemTaskPayload(
-                task_id=r.get("task_id", "TASK-01"),
-                target_identifier=r.get("target_identifier", "TARGET-01"),
-                primary_metric=float(r.get("primary_metric", 15.0)),
-                secondary_metric=float(r.get("secondary_metric", 5.0)),
-                status_descriptor=r.get("status_descriptor", "NOMINAL"),
-                is_critical_flag=bool(r.get("is_critical_flag", False)),
-            )
+        for row_number, r in enumerate(rows, start=2):
+            try:
+                payload = SystemTaskPayload(
+                    task_id=r.get("task_id", "TASK-01"),
+                    target_identifier=r.get("target_identifier", "TARGET-01"),
+                    primary_metric=float(r.get("primary_metric", 15.0)),
+                    secondary_metric=float(r.get("secondary_metric", 5.0)),
+                    status_descriptor=r.get("status_descriptor", "NOMINAL"),
+                    is_critical_flag=parse_csv_bool(r.get("is_critical_flag", False)),
+                )
+            except (ValueError, TypeError) as exc:
+                print(f"Error in CSV row {row_number}: {exc}", file=sys.stderr)
+                return 1
             dossier = supervisor.process_task(payload)
             row_dict = dict(r)
             row_dict["overall_urgency"] = dossier.overall_urgency.value
