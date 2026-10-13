@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Digital Twin Physiological Simulator API",
-    "description": "Enterprise Distributed Component Platform (Clinical & Cryptographic AI) adhering to CAP / CLSI / NIST Standards.",
+    "description": "Local research demonstration of fixed numeric thresholds and descriptor rules; not a validated physiological or clinical model.",
     "version": "3.0.0-ENTERPRISE",
     "contact": {
       "name": "Dr. Abu Suraih Sakhri",
@@ -22,17 +22,17 @@
     },
     "/metrics": {
       "get": {
-        "summary": "Prometheus operational metrics",
+        "summary": "Get local in-memory task counts as JSON",
         "responses": {
           "200": {
-            "description": "Prometheus text metrics"
+            "description": "JSON operational counts"
           }
         }
       }
     },
     "/api/audit": {
       "post": {
-        "summary": "Dispatch task payload across specialized workers",
+        "summary": "Evaluate deterministic demonstration rules",
         "requestBody": {
           "content": {
             "application/json": {
@@ -69,14 +69,14 @@
         },
         "responses": {
           "200": {
-            "description": "Consensus dossier with HMAC signature"
+            "description": "Rule dossier with in-memory HMAC audit-chain entry"
           }
         }
       }
     },
     "/api/chat": {
       "post": {
-        "summary": "Air-gapped supervisory conversational assistant",
+        "summary": "Query the deterministic mock responder",
         "requestBody": {
           "content": {
             "application/json": {
@@ -96,7 +96,7 @@
         },
         "responses": {
           "200": {
-            "description": "Supervisory response"
+            "description": "Mock response; not an LLM"
           }
         }
       }
@@ -106,7 +106,7 @@
         "summary": "Retrieve and cryptographically verify HMAC audit trail",
         "responses": {
           "200": {
-            "description": "Cryptographic audit trail"
+            "description": "Current process's in-memory HMAC chain (not persisted)"
           }
         }
       }
