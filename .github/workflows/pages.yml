@@ -38,7 +38,11 @@ jobs:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
           set -euo pipefail
-          curl -fsSL --retry 8 --retry-delay 5 "${PAGE_URL}" | grep -q "PhysioTwin"
-          curl -fsSL --retry 8 --retry-delay 5 "${PAGE_URL}web/" | grep -q "Parameter Rule Explorer"
-          curl -fsSL --retry 8 --retry-delay 5 "${PAGE_URL}web/app.mjs" | grep -q "evaluateTask"
-          curl -fsSL --retry 8 --retry-delay 5 "${PAGE_URL}web/rules.mjs" | grep -q "LIMITS"
+          curl -fsSL --retry 8 --retry-delay 5 "${PAGE_URL}" -o "${RUNNER_TEMP}/pages-root.html"
+          curl -fsSL --retry 8 --retry-delay 5 "${PAGE_URL}web/" -o "${RUNNER_TEMP}/pages-app.html"
+          curl -fsSL --retry 8 --retry-delay 5 "${PAGE_URL}web/app.mjs" -o "${RUNNER_TEMP}/pages-app.mjs"
+          curl -fsSL --retry 8 --retry-delay 5 "${PAGE_URL}web/rules.mjs" -o "${RUNNER_TEMP}/pages-rules.mjs"
+          grep -Fq "PhysioTwin" "${RUNNER_TEMP}/pages-root.html"
+          grep -Fq "Parameter Rule Explorer" "${RUNNER_TEMP}/pages-app.html"
+          grep -Fq "evaluateTask" "${RUNNER_TEMP}/pages-app.mjs"
+          grep -Fq "LIMITS" "${RUNNER_TEMP}/pages-rules.mjs"
