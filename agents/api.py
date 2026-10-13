@@ -12,7 +12,7 @@ supervisor = SystemSupervisor(model_provider="mock")
 
 app = FastAPI(
     title="Digital Twin Physiological Simulator API",
-    description="Enterprise Distributed Component Platform (Clinical & Biomedical AI)",
+    description="Local demonstration of deterministic rules; not clinically validated or a physiological ODE model",
     version="3.0.0-ENTERPRISE",
 )
 
@@ -23,7 +23,7 @@ class ChatRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "HEALTHY", "service": "digital-twin-physiological-simulator", "domain": "Clinical & Biomedical AI", "standard": "CAP / CLSI / ISO Standards", "version": "3.0.0-ENTERPRISE"}
+    return {"status": "HEALTHY", "service": "digital-twin-physiological-simulator", "domain": "Synthetic parameter rules", "standard": "Unvalidated demonstration thresholds", "version": "3.0.0-ENTERPRISE"}
 
 
 @app.get("/metrics")
@@ -31,7 +31,7 @@ def metrics():
     return {
         "dossiers_processed_total": len(supervisor.dossier_registry),
         "audit_blocks_total": len(AuditLogger.get_trail()),
-        "system_status": "NOMINAL_OPTIMAL"
+        "system_status": "RUNNING"
     }
 
 
