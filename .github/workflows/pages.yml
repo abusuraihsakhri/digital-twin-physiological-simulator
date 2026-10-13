@@ -31,6 +31,8 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+      - name: Allow uploaded artifact metadata to propagate
+        run: sleep 15
       - id: deployment
         uses: actions/deploy-pages@v4
       - name: Verify public site and static assets
