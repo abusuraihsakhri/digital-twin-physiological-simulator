@@ -8,6 +8,16 @@ import sys
 from .models import FrontierPayload
 from .agents import PhysioTwinCoordinator
 
+def parse_csv_bool(value: str) -> bool:
+    """Parse a CSV boolean without treating the string 'False' as true."""
+    normalized = str(value or "").strip().lower()
+    if normalized in ("true", "1", "yes", "y"):
+        return True
+    if normalized in ("false", "0", "no", "n", ""):
+        return False
+    raise ValueError(f"Invalid boolean value: {value!r}")
+
+
 coordinator = PhysioTwinCoordinator()
 
 
@@ -83,15 +93,19 @@ def main(argv=None):
 
         out_fields = fieldnames + ["overall_status", "total_alerts", "critical_count", "consensus_summary"]
         out_rows = []
-        for r in rows:
-            payload = FrontierPayload(
-                task_id=r.get("task_id", "TASK-01"),
-                target_identifier=r.get("target_identifier", "TARGET-01"),
-                primary_metric=float(r.get("primary_metric", 15.0)),
-                secondary_metric=float(r.get("secondary_metric", 5.0)),
-                status_descriptor=r.get("status_descriptor", "NOMINAL"),
-                is_critical_flag=bool(r.get("is_critical_flag", False)),
-            )
+        for row_number, r in enumerate(rows, start=2):
+            try:
+                payload = FrontierPayload(
+                    task_id=r.get("task_id", "TASK-01"),
+                    target_identifier=r.get("target_identifier", "TARGET-01"),
+                    primary_metric=float(r.get("primary_metric", 15.0)),
+                    secondary_metric=float(r.get("secondary_metric", 5.0)),
+                    status_descriptor=r.get("status_descriptor", "NOMINAL"),
+                    is_critical_flag=parse_csv_bool(r.get("is_critical_flag", False)),
+                )
+            except (ValueError, TypeError) as exc:
+                print(f"Error in CSV row {row_number}: {exc}", file=sys.stderr)
+                return 1
             dossier = coordinator.process(payload)
             row_dict = dict(r)
             row_dict["overall_status"] = dossier["overall_status"]
