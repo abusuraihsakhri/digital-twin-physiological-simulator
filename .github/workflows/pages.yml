@@ -33,3 +33,12 @@ jobs:
           path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify public site and static assets
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 8 --retry-delay 5 "${PAGE_URL}" | grep -q "PhysioTwin"
+          curl -fsSL --retry 8 --retry-delay 5 "${PAGE_URL}web/" | grep -q "Parameter Rule Explorer"
+          curl -fsSL --retry 8 --retry-delay 5 "${PAGE_URL}web/app.mjs" | grep -q "evaluateTask"
+          curl -fsSL --retry 8 --retry-delay 5 "${PAGE_URL}web/rules.mjs" | grep -q "LIMITS"
