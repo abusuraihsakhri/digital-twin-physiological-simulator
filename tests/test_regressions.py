@@ -66,3 +66,16 @@ def test_http_rejects_phi_in_nested_attributes():
     })
     assert response.status_code == 422
     assert "someone@example.com" not in response.text
+
+
+def test_unsupported_llm_provider_is_not_silently_mocked():
+    from agents.llm_factory import LLMFactory
+    with pytest.raises(ValueError, match="not implemented"):
+        LLMFactory.create("openai")
+
+
+def test_mock_response_does_not_claim_validation():
+    from agents.llm_factory import LLMFactory
+    result = LLMFactory.create("mock").invoke("Explain the rule set")
+    assert "placeholder" in result
+    assert "No independent inference" in result
