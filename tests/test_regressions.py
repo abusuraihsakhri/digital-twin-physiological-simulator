@@ -36,8 +36,8 @@ def test_batch_parses_false_flag(tmp_path, run, status_field, nominal):
     source = tmp_path / "input.csv"
     target = tmp_path / "output.csv"
     source.write_text(
-        "task_id,target_identifier,primary_metric,secondary_metric,status_descriptor,is_critical_flag\\n"
-        "T1,SYNTHETIC-1,12,4,NOMINAL,False\\n"
+        "task_id,target_identifier,primary_metric,secondary_metric,status_descriptor,is_critical_flag\n"
+        "T1,SYNTHETIC-1,12,4,NOMINAL,False\n"
     )
     assert run(["batch", "-i", str(source), "-o", str(target)]) == 0
     with target.open(newline="") as handle:
@@ -49,8 +49,8 @@ def test_batch_parses_false_flag(tmp_path, run, status_field, nominal):
 def test_batch_rejects_ambiguous_boolean(tmp_path, run, capsys):
     source = tmp_path / "input.csv"
     source.write_text(
-        "task_id,target_identifier,primary_metric,secondary_metric,status_descriptor,is_critical_flag\\n"
-        "T1,SYNTHETIC-1,12,4,NOMINAL,perhaps\\n"
+        "task_id,target_identifier,primary_metric,secondary_metric,status_descriptor,is_critical_flag\n"
+        "T1,SYNTHETIC-1,12,4,NOMINAL,perhaps\n"
     )
     assert run(["batch", "-i", str(source), "-o", str(tmp_path / "out.csv")]) == 1
     assert "row 2" in capsys.readouterr().err
