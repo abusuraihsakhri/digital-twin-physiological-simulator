@@ -1,5 +1,7 @@
 # Digital Twin Physiological Simulator
 
+### [Open the Live Application →](https://abusuraihsakhri.github.io/digital-twin-physiological-simulator/)
+
 A research-oriented **rule-based parameter evaluation** repository with a standalone browser explorer, two Python command-line evaluators, and a FastAPI audit endpoint.
 
 **Scope:** The current code compares numeric inputs against fixed thresholds and checks status keywords. Despite historical class names, it does **not** implement an eight-compartment cardiovascular/renal ODE, ventricular elastance solver, patient-specific digital twin, or medically validated decision support. Thresholds are synthetic demonstrations, not physiological reference ranges. **Do not use for clinical decisions or provide patient information.**
